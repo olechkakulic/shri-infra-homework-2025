@@ -52,13 +52,10 @@ jobs:
           echo "$SSH_KEY" > ssh_key
           chmod 600 ssh_key
           
-          # Store commands in a variable to properly handle the version parameter
           DEPLOY_SCRIPT=$(cat <<EOF
-            # Clean up existing container if it exists
             docker stop app || true
             docker rm app || true
             
-            # Authenticate using the VM's service account
             curl -s --header "Metadata-Flavor: Google" \\
               "http://169.254.169.254/computeMetadata/v1/instance/service-accounts/default/token" | \\
               cut -f1 -d',' | \\
@@ -66,14 +63,13 @@ jobs:
               tr -d '"' | \\
               docker login --username iam --password-stdin cr.yandex
             
-            # Pull and run the new version
             export REGISTRY_ID=$REGISTRY_ID
             docker pull cr.yandex/$REGISTRY_ID/$APP_NAME:${{ github.event.inputs.release_version }}_latest
             docker run -d -p 80:3000 --name app cr.yandex/$REGISTRY_ID/$APP_NAME:${{ github.event.inputs.release_version }}_latest
           EOF
           )
           
-          # Execute the script on the remote machine
+
           ssh -i ssh_key -o StrictHostKeyChecking=no ${{ env.SSH_USER }}@${{ env.VM_IP }} "$DEPLOY_SCRIPT"
 
       - name: Checkout repository
@@ -91,7 +87,7 @@ jobs:
           fi
           
           gh issue comment $ISSUE_NUMBER \
-            --body "✅ **Релиз выкачен в прод**  
+            --body "**Релиз выкачен в прод**  
                     **Версия:** 13  
                     **Запустил деплой:** olechkakulic  
                     **Docker Image:** cr.yandex/crperh81ttnqgnsobd6c/app:13_latest  
