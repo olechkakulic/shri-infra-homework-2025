@@ -83,10 +83,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Динамически определяем номер релиза из параметров workflow
           RELEASE_VERSION=${{ github.event.inputs.release_version }}
           
-          # Ищем Issue по шаблону "Release v<номер>"
           ISSUE_NUMBER=$(gh issue list --search "Release v$RELEASE_VERSION" --json number -q '.[0].number')
           
           if [ -z "$ISSUE_NUMBER" ]; then
@@ -94,7 +92,6 @@ jobs:
             exit 0
           fi
           
-          # Формируем сообщение с актуальными данными
           gh issue comment $ISSUE_NUMBER \
             --body "**Релиз выкачен в прод**  
                     **Версия:** $RELEASE_VERSION  
