@@ -7,7 +7,7 @@ export interface ProductShortInfo {
 export interface Product extends ProductShortInfo {
     description: string;
     material: string;
-    color: string;
+    color: string; 
 }
 
 export interface CheckoutFormData {
