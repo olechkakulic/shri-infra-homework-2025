@@ -83,16 +83,21 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          ISSUE_NUMBER=$(gh issue list --search "Release v13" --json number -q '.[0].number')
+          # Динамически определяем номер релиза из параметров workflow
+          RELEASE_VERSION=${{ github.event.inputs.release_version }}
+          
+          # Ищем Issue по шаблону "Release v<номер>"
+          ISSUE_NUMBER=$(gh issue list --search "Release v$RELEASE_VERSION" --json number -q '.[0].number')
           
           if [ -z "$ISSUE_NUMBER" ]; then
-            echo "Issue for release v13 not found!"
+            echo "Issue for release v$RELEASE_VERSION not found!"
             exit 0
           fi
           
+          # Формируем сообщение с актуальными данными
           gh issue comment $ISSUE_NUMBER \
             --body "**Релиз выкачен в прод**  
-                    **Версия:** 13  
-                    **Запустил деплой:** olechkakulic  
-                    **Docker Image:** cr.yandex/crperh81ttnqgnsobd6c/app:13_latest  
+                    **Версия:** $RELEASE_VERSION  
+                    **Запустил деплой:** ${{ github.actor }}  
+                    **Docker Image:** cr.yandex/${{ env.REGISTRY_ID }}/${{ env.APP_NAME }}:${RELEASE_VERSION}_latest  
                     **Дата выкатки:** $(date +'%Y-%m-%d %H:%M %Z')"
